@@ -4,9 +4,11 @@ This extension is for LSL scripts which is a scripting language for the virtual 
 
 If you are looking for a way to write LSL scripts from VSCode then this extension should help you a lot!
 
+I have updated LSLint to the current LSL calls as of July 2021. [Check it out here](https://github.com/FixedBit/lslint/)
+
 ## Three things to note
 
-* You must download and install LSLint yourself for this extension to work. Visit their [releases page](https://github.com/Makopo/lslint/releases/) to download it for your system.
+* You must download and install LSLint yourself for this extension to work. Visit the [LSLint releases page](https://github.com/FixedBit/lslint/releases/) to download it for your system.
 * You must add the folder containing LSLint to your path. This will depend on your operating system and instructions for that will be on your [favorite search engine](https://bfy.tw/RJg8).
 * I am not a professional TypeScript/NodeJS programmer and this is the first thing I have ever written in it. Any contributions or fixes are always welcome as Pull Requests.
 
