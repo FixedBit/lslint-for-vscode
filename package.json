@@ -2,19 +2,22 @@
   "name": "lslint",
   "displayName": "LSLint For VSCode",
   "description": "Adds LSLint (Second Life LSL Linting) support to VSCode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "FixedBit",
   "author": "Jason Hawks",
   "repository": {
     "type": "git",
     "url": "https://github.com/FixedBit/lslint-for-vscode.git"
   },
+  "bugs": {
+    "url": "https://github.com/FixedBit/lslint-for-vscode/issues"
+  },
   "icon": "sl.png",
   "galleryBanner": {
     "color": "#050523",
     "theme": "dark"
   },
-  "license": "GPL v3",
+  "license": "SEE LICENSE IN LICENSE.md",
   "engines": {
     "vscode": "^1.58.0"
   },
@@ -22,11 +25,10 @@
     "Linters"
   ],
   "activationEvents": [
-    "onCommand:lslint.lint",
-    "onCommand:lslint.reloadSettings",
-    "onLanguage:lsl"
+    "onLanguage:lsl",
+    "onCommand:lslint.lint"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/lslint-for-vscode.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -77,17 +79,23 @@
     "commands": [
       {
         "command": "lslint.lint",
-        "title": "Use LSLint to check your script for errors"
+        "title": "LSLint: Lint this script"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "lslint.lint",
+          "when": "editorLangId == lsl"
+        }
+      ]
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "vscode:prepublish": "webpack --mode production",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch",
+    "test-compile": "tsc -p ./"
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
@@ -96,10 +104,15 @@
     "@types/vscode": "^1.58.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "command-exists": "^1.2.9",
     "eslint": "^7.27.0",
     "glob": "^7.1.7",
     "mocha": "^8.4.0",
+    "supports-color": "^7.2.0",
+    "ts-loader": "^9.2.4",
     "typescript": "^4.3.2",
-    "vscode-test": "^1.5.2"
+    "vscode-test": "^1.5.2",
+    "webpack": "^5.47.0",
+    "webpack-cli": "^4.7.2"
   }
 }

@@ -2,11 +2,23 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
-
-## [0.0.1] - 2021-07-20
+## [1.0.1] - 2021-07-28
 ### Added
-- First version inspired by [LSLinter VScode](https://github.com/AdamMcCurdy/lslint-vscode) and parts used with permission
+- Check if lslint is on our path and display message if not found.
+- Remove stray command trigger from package.json.
+- Fixed command label for linting to better match other extensions.
+- Fixed License link in README.
+- Fixed License notation in package.json.
+- Fixed version numbers in CHANGELOG.
+- Added my lslint executable repo and releases page to README.
+- Added webpack as a bundler to help with size.
+- Cleaned up the main extension.ts in general.
+- Fixed a bug where an error on line 1 was not displayed.
+- Added bugs link to package.json.
+
+## [1.0.0] - 2021-07-20
+### Added
+- First version inspired by [LSLinter VScode](https://github.com/AdamMcCurdy/lslint-vscode) and parts used with permission.
 - Added options that allow usage with Firestorm Preprocessor Includes/Switch/LazyList.
 - Added support for calling by command, on save or realtime linting.
 - Added as many settings options as I could think of that would be useful for someone writing LSL in VS Code to work with LSLint.

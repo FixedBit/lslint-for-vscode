@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
         let parsedLines: { name: string; line: number; text: string; at: number; }[] = [];
     
         // iterate all lines found
-        allLines.forEach(function(item, index, object) {
+        allLines.forEach(function(item) {
             if(item.includes("ERROR::")) { // line is an error
                 // split on numbers
                 let numbers = item.match(/\d+/g);
@@ -138,11 +138,6 @@ export function activate(context: vscode.ExtensionContext) {
                 at: matches["at"]
             };
 
-            // no message line find, return...
-            if (!message.line) {
-                return;
-            }
-
             // the line our error is on
             var errorLine = activeEditor!.document.lineAt(message.line).text;
             // find our first letter after any spaces
@@ -167,23 +162,38 @@ export function activate(context: vscode.ExtensionContext) {
 
     // our man of the hour, do our linting
     // option for passing true for saving the file, defaults to false
-	function lslintDocument(saving: Boolean = false) {
+	function lslintDocument(saving: Boolean = false, manual: Boolean = false) {
+        
 		if (!activeEditor) {
+            console.error("LSLint: Not active editor");
 			return;
 		}
-    
+
         // We only want to lint lsl files
         if (activeEditor.document.languageId !== "lsl") {
+            console.error("LSLint: Not LSL Script");
             return;
         }
+
+        // clear all decorations each run
+        activeEditor.setDecorations(decorationType,[]);
         
+        // variable for callback
+        var commandExistsSync = require('command-exists').sync;
+        // if lslint not found, show message and abort
+        if (!commandExistsSync('lslint')) {
+            console.log("LSLint not found");
+            // manual trigger so give message
+            if (manual) { vscode.window.showErrorMessage("You must have lslint on your path for linting to work."); }
+            return;
+        }
+
         // clear globals
         globalMessages = [];
         rangesToDecorate = [];
 
         // declare our variable to be filled inside ifs
         var filePath = null; 
-
         if (!saving) // not saving file so must use temp file for linting
         {
             // get our text from the document
@@ -197,20 +207,17 @@ export function activate(context: vscode.ExtensionContext) {
         } else { // we are saving so do not worry with temp, just pass our real file's path
             filePath = activeEditor.document.uri.fsPath;
         }
-
         // we did not get a valid path so we exit
         if (!filePath) { return; }
-
         // declare settings variable
-        var lslLintForVSCode: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('lslint');
-
+        var settings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('lslint');
         // Determine the interpreter to use
-        let interpreter = lslLintForVSCode.get<string>("interpreter");
+        let interpreter = settings.get("interpreter");
 
         let args = []; // initialize holder for our arguments
-        if (lslLintForVSCode.get("ignoreDirectives", false)) { args.push('-i'); } // argument to ignore preprocessor directives
-        if (lslLintForVSCode.get("enableSwitchStatements", false)) { args.push('-w'); } // argument to include preprocessor switch statements
-        if (lslLintForVSCode.get("enableLazyLists", false)) { args.push('-z'); } // argument to include preprocessor lazy lists
+        if (settings.get("ignoreDirectives", false)) { args.push('-i'); } // argument to ignore preprocessor directives
+        if (settings.get("enableSwitchStatements", false)) { args.push('-w'); } // argument to include preprocessor switch statements
+        if (settings.get("enableLazyLists", false)) { args.push('-z'); } // argument to include preprocessor lazy lists
         args.push(filePath); // last argument is our file path
 
         // spawn our lslint process with proper arguments
@@ -222,12 +229,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         // call our parsing function
         parseLinting(lslProcess.stderr.toString());
-
         // display document decorations
         activeEditor.setDecorations(decorationType, rangesToDecorate);
 
         // If we are saving our file and we asked to be notified then show warning
-        if (lslLintForVSCode.get("popupErrors", true)) {
+        if (settings.get("popupErrors", true)) {
             // iterate our errors and depending on error or warning, display the pop up
             globalMessages.forEach(match => {
                 const error = {
@@ -238,7 +244,6 @@ export function activate(context: vscode.ExtensionContext) {
                 else if (error.name === 'Warn') { vscode.window.showWarningMessage(error.text); }
             });
         }
- 
     }
 
     // run setup calls for extension
@@ -254,7 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
         // register our manual command callback
         context.subscriptions.push(vscode.commands.registerCommand('lslint.lint', () => {
             console.log("Manual LSLinting command triggered");
-            lslintDocument();
+            lslintDocument(false, true);
         }));
     }
 
