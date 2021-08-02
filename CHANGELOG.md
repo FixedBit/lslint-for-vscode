@@ -2,6 +2,10 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.2] - 2021-08-02
+- Fixed a problem with vsce not packaging the actual extension file.
+- Added a check to see if lslint is installed and if not pop up a message.
+
 ## [1.0.1] - 2021-07-28
 ### Added
 - Check if lslint is on our path and display message if not found.

@@ -12,6 +12,8 @@ export function activate(context: vscode.ExtensionContext) {
     // globl vars for ranges to decorate and messages to show
     let rangesToDecorate: vscode.DecorationOptions[] = [];
     let globalMessages: { name: string; text: string; }[] = [];
+    // var to store if we have displayed lslint not found error already this session
+    let errorNotFoundShown = false;
 
     // set our global for realtime linting enabled
     let enabledRealTime = vscode.workspace.getConfiguration('lslint').get('realtimeLinting', true);
@@ -44,8 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // changed document callback
     const changedTextDocument = (event: vscode.TextDocumentChangeEvent) => {
-        // do not trigger unless we have a change and are enabled
-        if (!event.document.isDirty) { return; }
+        // do not trigger unless we have a change and are enabled, and lslint not found error has not been flagged
+        if (!event.document.isDirty || errorNotFoundShown) { return; }
         else if (activeEditor && event.document === activeEditor.document && enabledRealTime) {
             if (timeout) {
                 clearTimeout(timeout);
@@ -162,8 +164,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // our man of the hour, do our linting
     // option for passing true for saving the file, defaults to false
-	function lslintDocument(saving: Boolean = false, manual: Boolean = false) {
+	function lslintDocument(saving: Boolean = false) {
         
+        // we have displayed the error that lslint is not found so we exit
+        if (errorNotFoundShown) { return; }
+
+        // not active editor so we exit
 		if (!activeEditor) {
             console.error("LSLint: Not active editor");
 			return;
@@ -184,7 +190,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (!commandExistsSync('lslint')) {
             console.log("LSLint not found");
             // manual trigger so give message
-            if (manual) { vscode.window.showErrorMessage("You must have lslint on your path for linting to work."); }
+            // check if we already displayed the error
+            if (!errorNotFoundShown) { 
+                vscode.window.showInformationMessage("You need LSLint installed to use this extension.", { title: 'Get LSLint', id: "getlslint"}).then(item => {
+                    if (item!.id === 'getlslint') {
+                        require('open')('https://github.com/FixedBit/lslint-for-vscode#required-extra-installs');
+                    }
+                }); 
+                errorNotFoundShown = true;
+            }
             return;
         }
 
@@ -259,7 +273,7 @@ export function activate(context: vscode.ExtensionContext) {
         // register our manual command callback
         context.subscriptions.push(vscode.commands.registerCommand('lslint.lint', () => {
             console.log("Manual LSLinting command triggered");
-            lslintDocument(false, true);
+            lslintDocument();
         }));
     }
 
