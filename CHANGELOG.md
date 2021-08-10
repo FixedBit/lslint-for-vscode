@@ -2,6 +2,10 @@
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.3] - 2021-08-09
+- Removed setting for lslint executable as it was useless and confusing.
+- Timer now waits for lslint to be found and extension re-enabled.
+
 ## [1.0.2] - 2021-08-02
 - Fixed a problem with vsce not packaging the actual extension file.
 - Added a check to see if lslint is installed and if not pop up a message.

@@ -2,7 +2,7 @@
   "name": "lslint",
   "displayName": "LSLint For VSCode",
   "description": "Adds LSLint (Second Life LSL Linting) support to VSCode",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "FixedBit",
   "author": "Jason Hawks",
   "repository": {
@@ -68,11 +68,6 @@
           "type": "boolean",
           "default": false,
           "description": "Enable Firestorm preprocessor Lazy List Syntax"
-        },
-        "lslint.interpreter": {
-          "type": "string",
-          "default": "lslint",
-          "description": "The executable for LSLint; must be in your path"
         }
       }
     },

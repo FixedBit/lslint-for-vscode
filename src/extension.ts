@@ -9,6 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let activeEditor = vscode.window.activeTextEditor;
     // our timer variable
 	let timeout: NodeJS.Timer | undefined = undefined;
+    // timer var for checking on lslint to reset variable
+    let checkTimeout: NodeJS.Timer | undefined = undefined;
     // globl vars for ranges to decorate and messages to show
     let rangesToDecorate: vscode.DecorationOptions[] = [];
     let globalMessages: { name: string; text: string; }[] = [];
@@ -84,11 +86,11 @@ export function activate(context: vscode.ExtensionContext) {
     const changedConfiguration = (event: vscode.ConfigurationChangeEvent) => {
         enabledRealTime = vscode.workspace.getConfiguration('lslint').get('realtimeLinting', true);
         enabledSaving = vscode.workspace.getConfiguration('lslint').get('lintOnSave', true);
-        console.log(`LSLint: Configuration changed - adopting new settings ~ realtimeLinting: ${enabledRealTime} lintOnSave: ${enabledSaving}`);
+        console.log(`LSLint: Configuration changed - adopting new settings ~ realtimeLinting: ${enabledRealTime} lintOnSave: ${enabledSaving} event:${event.toString()}`);
     };
 
     // generate our parsed line matches from raw incoming data
-	function generateMatches(payload: string) {
+    function generateMatches(payload: string) {
         // if not active, exit
         if (!activeEditor) {
 			return;
@@ -162,6 +164,19 @@ export function activate(context: vscode.ExtensionContext) {
         });
     }
 
+    function callbackWaitForLSLint() {
+        // variable for callback
+        var commandExistsSync = require('command-exists').sync;
+        // if lslint is found we clear the not found variable and clear the timer
+        if (commandExistsSync('lslint')) { 
+            console.log('LSLint: Timer ran - found lslint, clearing timer.');
+            vscode.window.showInformationMessage("LSLint found in path. Extension has been enabled.");
+            errorNotFoundShown = false; 
+            clearTimeout(checkTimeout!);
+            checkTimeout = undefined;
+        }
+    }
+
     // our man of the hour, do our linting
     // option for passing true for saving the file, defaults to false
 	function lslintDocument(saving: Boolean = false) {
@@ -193,11 +208,15 @@ export function activate(context: vscode.ExtensionContext) {
             // check if we already displayed the error
             if (!errorNotFoundShown) { 
                 vscode.window.showInformationMessage("You need LSLint installed to use this extension.", { title: 'Get LSLint', id: "getlslint"}).then(item => {
-                    if (item!.id === 'getlslint') {
+                    if (item?.id === 'getlslint') {
                         require('open')('https://github.com/FixedBit/lslint-for-vscode#required-extra-installs');
                     }
                 }); 
                 errorNotFoundShown = true;
+                console.log('LSLint: wait for lslint timer started.');
+                // set our timer to keep checking every 3 seconds if we found lslint on our path
+                if (checkTimeout) { clearTimeout(checkTimeout); checkTimeout = undefined; }
+                checkTimeout = setInterval( callbackWaitForLSLint, 3000);
             }
             return;
         }
@@ -225,8 +244,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (!filePath) { return; }
         // declare settings variable
         var settings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('lslint');
-        // Determine the interpreter to use
-        let interpreter = settings.get("interpreter");
 
         let args = []; // initialize holder for our arguments
         if (settings.get("ignoreDirectives", false)) { args.push('-i'); } // argument to ignore preprocessor directives
@@ -236,7 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // spawn our lslint process with proper arguments
         var sync = require('child_process').spawnSync;
-        var lslProcess = sync(interpreter, args, { encoding: 'utf8' });
+        var lslProcess = sync('lslint', args, { encoding: 'utf8' });
 
         // just logging debug info if we are debugging extension
         console.log("LINTING: " + lslProcess.stderr.toString());
