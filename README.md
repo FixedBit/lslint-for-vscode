@@ -1,5 +1,7 @@
 # LSLint for VSCode
 
+![Marketplace Link](https://vsmarketplacebadge.apphb.com/version-short/fixedbit.lslint.svg)
+
 ## Information
 
 Wrapper for [LSLint](https://github.com/FixedBit/lslint/); LSL being a scripting language for the virtual world of [Second Life](https://secondlife.com).
